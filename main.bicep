@@ -7,9 +7,12 @@ var imageSku = '2022-Datacenter'
 var clientimagePublisher = 'microsoftwindowsdesktop'
 var clientimageOffer = 'windows-11'
 var clientimageSku = 'win11-22h2-pro'
-var linuximagePublisher = 'Canonical'
-var linuximageOffer = 'UbuntuServer'
-var linuximageSku = '18.04-LTS'
+var linuximagePublisher = 'kinvolk'
+var linuximageOffer = 'flatcar-container-linux-free'
+var linuximageSku = 'stable-gen2'
+
+var api_image='erjosito/yadaapi:1.0'
+var web_image='erjosito/yadaweb:1.0'
 
 var adminUsername = 'marc'
 var adminPassword = 'Nienke040598'
@@ -146,6 +149,23 @@ resource vm1nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
           privateIPAllocationMethod: 'Static'
           privateIPAddress: '10.0.0.4'
           loadBalancerBackendAddressPools: [
+            {id: lb.properties.backendAddressPools[0].id}
+            {id: ilb.properties.backendAddressPools[0].id}
+          ]
+        }
+      }
+      {
+        name: 'ipconfig2'
+        properties: {
+          privateIPAddressVersion: 'IPv6'
+          subnet: {
+            id: '${servervnet.id}/subnets/vmsubnet0'
+          }
+          privateIPAllocationMethod: 'Static'
+          privateIPAddress: 'abcd:de12:3456::4'
+          loadBalancerBackendAddressPools: [
+            {id: lb.properties.backendAddressPools[1].id}
+            {id: ilb.properties.backendAddressPools[1].id}
           ]
         }
       }
@@ -196,13 +216,30 @@ resource vm2nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
       {
         name: 'ipconfig1'
         properties: {
+          privateIPAddressVersion: 'IPv4'
           subnet: {
             id: '${servervnet.id}/subnets/vmsubnet0'
           }
           privateIPAllocationMethod: 'Static'
           privateIPAddress: '10.0.0.5'
           loadBalancerBackendAddressPools: [
-
+            {id: lb.properties.backendAddressPools[0].id}
+            {id: ilb.properties.backendAddressPools[0].id}
+          ]
+        }
+      }
+      {
+        name: 'ipconfig2'
+        properties: {
+          privateIPAddressVersion: 'IPv6'
+          subnet: {
+            id: '${servervnet.id}/subnets/vmsubnet0'
+          }
+          privateIPAllocationMethod: 'Static'
+          privateIPAddress: 'abcd:de12:3456::5'
+          loadBalancerBackendAddressPools: [
+            {id: lb.properties.backendAddressPools[1].id}
+            {id: ilb.properties.backendAddressPools[1].id}
           ]
         }
       }
@@ -287,6 +324,10 @@ resource bastion 'Microsoft.Network/bastionHosts@2021-02-01' = {
 resource bastionipv4 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   name: 'bastionipv4'
   location: location
+  sku: {
+    name: 'Standard'
+    tier: 'Regional'
+  }
   properties: {
     publicIPAllocationMethod: 'Static'
     publicIPAddressVersion: 'IPv4'
@@ -320,6 +361,9 @@ resource lbfepv6 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
 resource lb 'Microsoft.Network/loadBalancers@2024-01-01'= {
   name: 'lb'
   location: location
+  sku: {
+    name: 'Standard'
+  }
   properties: {
     frontendIPConfigurations: [
       {
@@ -342,6 +386,13 @@ resource lb 'Microsoft.Network/loadBalancers@2024-01-01'= {
     backendAddressPools: [
       {
         name: 'bep1'
+        properties: {
+            loadBalancerBackendAddresses: [
+            ] 
+          }
+      }
+      {
+        name: 'bep2'
         properties: {
             loadBalancerBackendAddresses: [
             ] 
@@ -387,7 +438,7 @@ resource lb 'Microsoft.Network/loadBalancers@2024-01-01'= {
         name: 'publicIPLBRulev6'
         properties: {
           backendAddressPool: {
-            id: resourceId('Microsoft.Network/loadBalancers/backendAddressPools','lb','bep1')
+            id: resourceId('Microsoft.Network/loadBalancers/backendAddressPools','lb','bep2')
           }
           backendPort: 80
           disableOutboundSnat: true
@@ -412,20 +463,44 @@ resource lb 'Microsoft.Network/loadBalancers@2024-01-01'= {
 resource ilb 'Microsoft.Network/loadBalancers@2024-01-01'= {
   name: 'ilb'
   location: location
+  sku: {
+    name: 'Standard'
+  }
   properties: {
     frontendIPConfigurations: [
       {
         name: 'privateipconfigv4'
         properties: {
+          privateIPAddressVersion: 'IPv4'
           subnet: {
             id: '${servervnet.id}/subnets/vmsubnet1'
           }
+          privateIPAddress: '10.0.1.100'
+          privateIPAllocationMethod: 'Static'
+        }
+      }
+      {
+        name: 'privateipconfigv6'
+          properties: {
+          privateIPAddressVersion: 'IPv6'
+          subnet: {
+            id: '${servervnet.id}/subnets/vmsubnet1'
+          }
+          privateIPAddress: 'abcd:de12:3456:1::ff'
+          privateIPAllocationMethod: 'Static'
         }
       }
     ]
     backendAddressPools: [
       {
         name: 'ilbbep1'
+        properties: {
+            loadBalancerBackendAddresses: [
+            ] 
+          }
+      }
+      {
+        name: 'ilbbep2'
         properties: {
             loadBalancerBackendAddresses: [
             ] 
@@ -467,29 +542,53 @@ resource ilb 'Microsoft.Network/loadBalancers@2024-01-01'= {
           protocol: 'Tcp'
         }
       }
+      {
+        name: 'privateIPhttpRulev6'
+        properties: {
+          backendAddressPool: {
+            id: resourceId('Microsoft.Network/loadBalancers/backendAddressPools','ilb','ilbbep2')
+          }
+          backendPort: 80
+          disableOutboundSnat: true
+          enableFloatingIP: false
+          enableTcpReset: false
+          frontendIPConfiguration: {
+            id: resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations','ilb','privateipconfigv6')
+          }
+          frontendPort: 80
+          idleTimeoutInMinutes: 5
+          loadDistribution: 'Default'
+          probe: {
+            id: resourceId('Microsoft.Network/loadBalancers/probes','ilb','probev4')
+          }
+          protocol: 'Tcp'
+        }
+      }
     ]
   }
 }
 resource privateDNSZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  location: location
+  location: 'global'
   name: 'gsa.local'
 }
 resource gsaconnectorDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'gsaconnector'
   properties: {
-   aRecords: [
+    ttl: 3600
+    aRecords: [
       {
         ipv4Address: gsaconnectornic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
-          ]
-        }
+     ]
+    }
 }
 resource vm1DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'vm1'
   properties: {
-   aRecords: [
+    ttl: 3600
+    aRecords: [
       {
         ipv4Address: vm1nic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
@@ -500,13 +599,27 @@ resource vm2DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'vm2'
   properties: {
-   aRecords: [
+    ttl: 3600
+    aRecords: [
       {
         ipv4Address: vm2nic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
   }
 }
+resource vnetlink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  parent: privateDNSZone
+  name: 'vnetlink'
+  location: 'global'
+  properties: {
+    virtualNetwork: {
+      id: servervnet.id
+      }
+      registrationEnabled: false
+    }
+}
+
+
 
 output vm1FQDN string = vm1DNSRecordSet.properties.aRecords[0].ipv4Address
 output vm2FQDN string = vm2DNSRecordSet.properties.aRecords[0].ipv4Address
