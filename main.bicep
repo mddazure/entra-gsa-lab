@@ -14,6 +14,10 @@ var linuximageSku = 'stable-gen2'
 var api_image='erjosito/yadaapi:1.0'
 var web_image='erjosito/yadaweb:1.0'
 
+var sql_server_fqdn = 'yada-db-server.database.windows.net'
+var sql_username = 'marc'
+var sql_password = 'Nienke040598'
+
 var adminUsername = 'marc'
 var adminPassword = 'Nienke040598'
 
@@ -99,8 +103,8 @@ resource servernsg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
     ]
   }
 }
-resource vm1 'Microsoft.Compute/virtualMachines@2024-03-01' = {
-  name: 'vm1'
+resource web1 'Microsoft.Compute/virtualMachines@2024-03-01' = {
+  name: 'web1'
   location: location
   properties: {
     hardwareProfile: {
@@ -121,22 +125,22 @@ resource vm1 'Microsoft.Compute/virtualMachines@2024-03-01' = {
       }
     }
     osProfile: {
-      computerName: 'vm1'
+      computerName: 'web1'
       adminUsername: adminUsername
       adminPassword: adminPassword
     }
     networkProfile: {
       networkInterfaces: [
         {
-          id: vm1nic.id
+          id: web1nic.id
         }
       ]
     }
   }
 }
 
-resource vm1nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
-  name: 'vm1nic'
+resource web1nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
+  name: 'web1nic'
   location: location
   properties: {
     ipConfigurations: [
@@ -172,8 +176,37 @@ resource vm1nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
     ]
   }
 }
-resource vm2 'Microsoft.Compute/virtualMachines@2024-03-01' = {
-  name: 'vm2'
+/*resource web1runcommand 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' = {
+  parent: web1
+  name: 'web1runcommand'
+  location: location
+  properties: {
+    publisher: 'Microsoft.Compute'
+    type: 'CustomScriptExtension'
+    typeHandlerVersion: '1.10'
+    autoUpgradeMinorVersion: true
+    settings: {
+      fileUris: [
+        'https://raw.githubusercontent.com/erjosito/azure-quickstart-templates/master/101-vm-simple-linux/azuredeploy.sh'
+      ]
+      commandToExecute: 'bash azuredeploy.sh'
+    }
+  }
+}*/
+
+resource web1runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
+  parent: web1
+  name: 'web1runcommand'
+  location: location
+  properties: {
+    source: {
+      script: 'docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}'
+    }
+  }
+}
+
+resource web2 'Microsoft.Compute/virtualMachines@2024-03-01' = {
+  name: 'web2'
   location: location
   properties: {
     hardwareProfile: {
@@ -194,22 +227,22 @@ resource vm2 'Microsoft.Compute/virtualMachines@2024-03-01' = {
       }
     }
     osProfile: {
-      computerName: 'vm2'
+      computerName: 'web2'
       adminUsername: adminUsername
       adminPassword: adminPassword
     }
     networkProfile: {
       networkInterfaces: [
         {
-          id: vm2nic.id
+          id: web2nic.id
         }
       ]
     }
   }
 }
 
-resource vm2nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
-  name: 'vm2nic'
+resource web2nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
+  name: 'web2nic'
   location: location
   properties: {
     ipConfigurations: [
@@ -246,6 +279,110 @@ resource vm2nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
     ]
   }
 }
+
+resource api 'Microsoft.Compute/virtualMachines@2024-03-01' = {
+  name: 'api'
+  location: location
+  properties: {
+    hardwareProfile: {
+      vmSize: 'Standard_DS2_v2'
+    }
+    storageProfile: {
+      imageReference: {
+        publisher: linuximagePublisher
+        offer: linuximageOffer
+        sku: linuximageSku
+        version: 'latest'
+      }
+      osDisk: {
+        createOption: 'FromImage'
+        managedDisk: {
+          storageAccountType: 'Standard_LRS'
+        }
+      }
+    }
+    osProfile: {
+      computerName: 'api'
+      adminUsername: adminUsername
+      adminPassword: adminPassword
+    }
+    networkProfile: {
+      networkInterfaces: [
+        {
+          id: apinic.id
+        }
+      ]
+    }
+  }
+}
+
+resource apinic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
+  name: 'apinic'
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          subnet: {
+            id: '${servervnet.id}/subnets/vmsubnet0'
+          }
+          privateIPAllocationMethod: 'Static'
+          privateIPAddress: '10.0.0.4'
+          loadBalancerBackendAddressPools: [
+            {id: lb.properties.backendAddressPools[0].id}
+            {id: ilb.properties.backendAddressPools[0].id}
+          ]
+        }
+      }
+      {
+        name: 'ipconfig2'
+        properties: {
+          privateIPAddressVersion: 'IPv6'
+          subnet: {
+            id: '${servervnet.id}/subnets/vmsubnet0'
+          }
+          privateIPAllocationMethod: 'Static'
+          privateIPAddress: 'abcd:de12:3456::4'
+          loadBalancerBackendAddressPools: [
+            {id: lb.properties.backendAddressPools[1].id}
+            {id: ilb.properties.backendAddressPools[1].id}
+          ]
+        }
+      }
+    ]
+  }
+}
+/*resource apiruncommand 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' = {
+  parent: api
+  name: 'apiruncommand'
+  location: location
+  properties: {
+    publisher: 'Microsoft.Compute'
+    type: 'CustomScriptExtension'
+    typeHandlerVersion: '1.10'
+    autoUpgradeMinorVersion: true
+    settings: {
+      fileUris: [
+        'https://raw.githubusercontent.com/erjosito/azure-quickstart-templates/master/101-vm-simple-linux/azuredeploy.sh'
+      ]
+      commandToExecute: 'bash azuredeploy.sh'
+    }
+  }
+}*/
+
+resource apiruncommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
+  parent: api
+  name: 'apiruncommand'
+  location: location
+  properties: {
+    source: {
+      script: 'docker run --restart always -d -p 8080:8080 -e "SQL_SERVER_FQDN=${sql_server_fqdn}" -e "SQL_SERVER_USERNAME=${sql_username}" -e "SQL_SERVER_PASSWORD=${sql_password}" --name api ${api_image}'
+    }
+  }
+}
+
+
 
 resource gsaconnector 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   name: 'gsaconnector'
@@ -583,30 +720,43 @@ resource gsaconnectorDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-0
      ]
     }
 }
-resource vm1DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+resource web1DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
-  name: 'vm1'
+  name: 'web1'
   properties: {
     ttl: 3600
     aRecords: [
       {
-        ipv4Address: vm1nic.properties.ipConfigurations[0].properties.privateIPAddress
+        ipv4Address: web1nic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
   }
 }
-resource vm2DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+resource web2DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
-  name: 'vm2'
+  name: 'web2'
   properties: {
     ttl: 3600
     aRecords: [
       {
-        ipv4Address: vm2nic.properties.ipConfigurations[0].properties.privateIPAddress
+        ipv4Address: web2nic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
   }
 }
+resource apiDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+  parent: privateDNSZone
+  name: 'api'
+  properties: {
+    ttl: 3600
+    aRecords: [
+      {
+        ipv4Address: apinic.properties.ipConfigurations[0].properties.privateIPAddress
+      }      
+    ]
+  }
+}
+
 resource vnetlink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
   parent: privateDNSZone
   name: 'vnetlink'
@@ -621,7 +771,7 @@ resource vnetlink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06
 
 
 
-output vm1FQDN string = vm1DNSRecordSet.properties.aRecords[0].ipv4Address
-output vm2FQDN string = vm2DNSRecordSet.properties.aRecords[0].ipv4Address
+output web1FQDN string = web1DNSRecordSet.properties.aRecords[0].ipv4Address
+output web2FQDN string = web2DNSRecordSet.properties.aRecords[0].ipv4Address
 output gsaconnectorFQDN string = gsaconnectorDNSRecordSet.properties.aRecords[0].ipv4Address
 
