@@ -106,6 +106,11 @@ resource servernsg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
 resource web1 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   name: 'web1'
   location: location
+  plan: {
+    publisher: linuximagePublisher
+    product: linuximageOffer
+    name: linuximageSku
+  }
   properties: {
     hardwareProfile: {
       vmSize: 'Standard_DS2_v2'
@@ -115,6 +120,7 @@ resource web1 'Microsoft.Compute/virtualMachines@2024-03-01' = {
         publisher: linuximagePublisher
         offer: linuximageOffer
         sku: linuximageSku
+        
         version: 'latest'
       }
       osDisk: {
@@ -208,6 +214,11 @@ resource web1runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-0
 resource web2 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   name: 'web2'
   location: location
+  plan: {
+    publisher: linuximagePublisher
+    product: linuximageOffer
+    name: linuximageSku
+  }
   properties: {
     hardwareProfile: {
       vmSize: 'Standard_DS2_v2'
@@ -283,6 +294,11 @@ resource web2nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
 resource api 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   name: 'api'
   location: location
+  plan: {
+    publisher: linuximagePublisher
+    product: linuximageOffer
+    name: linuximageSku
+  }
   properties: {
     hardwareProfile: {
       vmSize: 'Standard_DS2_v2'
@@ -328,11 +344,7 @@ resource apinic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
             id: '${servervnet.id}/subnets/vmsubnet0'
           }
           privateIPAllocationMethod: 'Static'
-          privateIPAddress: '10.0.0.4'
-          loadBalancerBackendAddressPools: [
-            {id: lb.properties.backendAddressPools[0].id}
-            {id: ilb.properties.backendAddressPools[0].id}
-          ]
+          privateIPAddress: '10.0.0.10'
         }
       }
       {
@@ -343,11 +355,7 @@ resource apinic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
             id: '${servervnet.id}/subnets/vmsubnet0'
           }
           privateIPAllocationMethod: 'Static'
-          privateIPAddress: 'abcd:de12:3456::4'
-          loadBalancerBackendAddressPools: [
-            {id: lb.properties.backendAddressPools[1].id}
-            {id: ilb.properties.backendAddressPools[1].id}
-          ]
+          privateIPAddress: 'abcd:de12:3456::10'
         }
       }
     ]
