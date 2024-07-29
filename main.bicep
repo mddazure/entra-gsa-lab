@@ -142,6 +142,11 @@ resource web1 'Microsoft.Compute/virtualMachines@2024-03-01' = {
         }
       ]
     }
+    diagnosticsProfile: {
+      bootDiagnostics: {
+        enabled: true
+      }
+    }
   }
 }
 
@@ -249,6 +254,11 @@ resource web2 'Microsoft.Compute/virtualMachines@2024-03-01' = {
         }
       ]
     }
+    diagnosticsProfile: {
+      bootDiagnostics: {
+        enabled: true
+      }
+    }
   }
 }
 
@@ -290,7 +300,16 @@ resource web2nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
     ]
   }
 }
-
+resource web2runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
+  parent: web2
+  name: 'web2runcommand'
+  location: location
+  properties: {
+    source: {
+      script: 'docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}'
+    }
+  }
+}  
 resource api 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   name: 'api'
   location: location
@@ -328,6 +347,11 @@ resource api 'Microsoft.Compute/virtualMachines@2024-03-01' = {
           id: apinic.id
         }
       ]
+    }
+    diagnosticsProfile: {
+      bootDiagnostics: {
+        enabled: true
+      }
     }
   }
 }
@@ -599,6 +623,40 @@ resource lb 'Microsoft.Network/loadBalancers@2024-01-01'= {
             id: resourceId('Microsoft.Network/loadBalancers/probes','lb','probehttp')
           }
           protocol: 'Tcp'
+        }
+      }
+    ]
+    outboundRules: [
+      {
+        name: 'OutboundRulev4'
+        properties: {
+          backendAddressPool: {
+            id: resourceId('Microsoft.Network/loadBalancers/backendAddressPools','lb','bep1')
+          }
+          allocatedOutboundPorts: 1000
+          frontendIPConfigurations: [
+            {
+              id: resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations','lb','publicipconfigv4')
+            }
+          ]
+          protocol: 'All'
+          idleTimeoutInMinutes: 4
+        }
+      }
+      {
+        name: 'OutboundRulev6'
+        properties: {
+          backendAddressPool: {
+            id: resourceId('Microsoft.Network/loadBalancers/backendAddressPools','lb','bep2')
+          }
+          allocatedOutboundPorts: 1000
+          frontendIPConfigurations: [
+            {
+              id: resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations','lb','publicipconfigv6')
+            }
+          ]
+          protocol: 'All'
+          idleTimeoutInMinutes: 4
         }
       }
     ]
