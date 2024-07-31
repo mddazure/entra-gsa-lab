@@ -310,8 +310,8 @@ resource web2runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-0
     }
   }
 }  
-resource api 'Microsoft.Compute/virtualMachines@2024-03-01' = {
-  name: 'api'
+resource yadaapi 'Microsoft.Compute/virtualMachines@2024-03-01' = {
+  name: 'yadaapi'
   location: location
   plan: {
     publisher: linuximagePublisher
@@ -337,7 +337,7 @@ resource api 'Microsoft.Compute/virtualMachines@2024-03-01' = {
       }
     }
     osProfile: {
-      computerName: 'api'
+      computerName: 'yadaapi'
       adminUsername: adminUsername
       adminPassword: adminPassword
     }
@@ -365,10 +365,10 @@ resource apinic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
         name: 'ipconfig1'
         properties: {
           subnet: {
-            id: '${servervnet.id}/subnets/vmsubnet0'
+            id: '${servervnet.id}/subnets/vmsubnet1'
           }
           privateIPAllocationMethod: 'Static'
-          privateIPAddress: '10.0.0.10'
+          privateIPAddress: '10.0.1.10'
         }
       }
       {
@@ -376,10 +376,10 @@ resource apinic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
         properties: {
           privateIPAddressVersion: 'IPv6'
           subnet: {
-            id: '${servervnet.id}/subnets/vmsubnet0'
+            id: '${servervnet.id}/subnets/vmsubnet1'
           }
           privateIPAllocationMethod: 'Static'
-          privateIPAddress: 'abcd:de12:3456::10'
+          privateIPAddress: 'abcd:de12:3456:1:10'
         }
       }
     ]
@@ -404,7 +404,7 @@ resource apinic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
 }*/
 
 resource apiruncommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
-  parent: api
+  parent: yadaapi
   name: 'apiruncommand'
   location: location
   properties: {
@@ -774,6 +774,23 @@ resource privateDNSZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   location: 'global'
   name: 'gsa.local'
 }
+resource yadaDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+  parent: privateDNSZone
+  name: 'yadaconnector'
+  properties: {
+    ttl: 3600
+    aRecords: [
+      {
+        ipv4Address: ilb.properties.frontendIPConfigurations[0].properties.privateIPAddress
+      }     
+     ]
+     aaaaRecords: [
+      {
+        ipv6Address: ilb.properties.frontendIPConfigurations[1].properties.privateIPAddress
+      }     
+     ]
+    }
+  }
 resource gsaconnectorDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'gsaconnector'
@@ -783,6 +800,11 @@ resource gsaconnectorDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-0
       {
         ipv4Address: gsaconnectornic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
+     ]
+     aaaaRecords: [
+      {
+        ipv6Address: gsaconnectornic.properties.ipConfigurations[1].properties.privateIPAddress
+      }     
      ]
     }
 }
@@ -796,6 +818,11 @@ resource web1DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
         ipv4Address: web1nic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
+    aaaaRecords: [
+      {
+        ipv6Address: web1nic.properties.ipConfigurations[1].properties.privateIPAddress
+      }     
+     ]
   }
 }
 resource web2DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
@@ -808,6 +835,11 @@ resource web2DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
         ipv4Address: web2nic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
+    aaaaRecords: [
+      {
+        ipv6Address: web2nic.properties.ipConfigurations[1].properties.privateIPAddress
+      }     
+     ]
   }
 }
 resource apiDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
@@ -820,6 +852,11 @@ resource apiDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
         ipv4Address: apinic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
+    aaaaRecords: [
+      {
+        ipv6Address: apinic.properties.ipConfigurations[1].properties.privateIPAddress
+      }     
+     ]
   }
 }
 
@@ -837,7 +874,18 @@ resource vnetlink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06
 
 
 
-output web1FQDN string = web1DNSRecordSet.properties.aRecords[0].ipv4Address
-output web2FQDN string = web2DNSRecordSet.properties.aRecords[0].ipv4Address
-output gsaconnectorFQDN string = gsaconnectorDNSRecordSet.properties.aRecords[0].ipv4Address
-
+output web1FQDN string = web1DNSRecordSet.properties.fqdn
+output web1IPv4 string = web1DNSRecordSet.properties.aRecords[0].ipv4Address
+output web1IPv6 string = web1DNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output web2FQDN string = web2DNSRecordSet.properties.fqdn
+output web2IPv4 string = web2DNSRecordSet.properties.aRecords[0].ipv4Address
+output web2IPv6 string = web2DNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output apiFQDN string = apiDNSRecordSet.properties.fqdn
+output apiIPv4 string = apiDNSRecordSet.properties.aRecords[0].ipv4Address
+output apiIPv6 string = apiDNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output gsaconnectorFQDN string = gsaconnectorDNSRecordSet.properties.fqdn
+output gsaconnectorIPv4 string = gsaconnectorDNSRecordSet.properties.aRecords[0].ipv4Address
+output gsaconnectorIPv6 string = gsaconnectorDNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output yadaFQDN string = yadaDNSRecordSet.properties.fqdn
+output yadaIPv4 string = yadaDNSRecordSet.properties.aRecords[0].ipv4Address
+output yadaIPv6 string = yadaDNSRecordSet.properties.aaaaRecords[0].ipv6Address
