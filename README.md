@@ -27,27 +27,27 @@ Log in to Azure Cloud Shell at https://shell.azure.com/ and select Bash.
 
 Ensure Azure CLI and extensions are up to date:
   
-        az upgrade --yes
+    az upgrade --yes
   
 If necessary select your target subscription:
   
-        az account set --subscription <Name or ID of subscription>
+    az account set --subscription <Name or ID of subscription>
 
 Clone the  GitHub repository: 
-        git clone https://github.com/mddazure/entra-gsa-lab
 
+    git clone https://github.com/mddazure/entra-gsa-lab
 
 Change directory:
   
-        cd ./entra-gsa-lab
+    cd ./entra-gsa-lab
 
 Create Resource Group:
 
-        az group create -l <region> -n <rgname>
+    az group create -l <region> -n <rgname>
 
 Deploy template:
 
-        az deployment group create -g <rgname> --template-file main.bicep --parameters location=<region>
+    az deployment group create -g <rgname> --template-file main.bicep --parameters location=<region>
 
 
 
