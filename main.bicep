@@ -18,8 +18,8 @@ var sql_server_fqdn = 'yada-db-server.database.windows.net'
 var sql_username = 'marc'
 var sql_password = 'Nienke040598'
 
-var adminUsername = 'marc'
-var adminPassword = 'Nienke040598'
+var adminUsername = 'AzureAdmin'
+var adminPassword = 'GSA-demo2024'
 
 resource servervnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
   name: 'servervnet'
