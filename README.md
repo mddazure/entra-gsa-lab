@@ -49,11 +49,9 @@ Deploy template:
 
     az deployment group create -g <rgname> --template-file main.bicep --parameters location=<region>
 
-
-
-
-
 ### Verify
+
+
 
 
 
