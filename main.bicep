@@ -813,18 +813,7 @@ resource gsaconnectorADNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-
      ]
     }
 }
-resource gsaconnectorAAAADNSRecordSet 'Microsoft.Network/privateDnsZones/AAAA@2020-06-01' = {
-  parent: privateDNSZone
-  name: 'gsaconnector'
-  properties: {
-    ttl: 3600
-     aaaaRecords: [
-      {
-        ipv6Address: gsaconnectornic.properties.ipConfigurations[1].properties.privateIPAddress
-      }     
-     ]
-    }
-}
+
 resource web1ADNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'web1'
@@ -923,7 +912,6 @@ output apiIPv4 string = apiADNSRecordSet.properties.aRecords[0].ipv4Address
 output apiIPv6 string = apiAAAADNSRecordSet.properties.aaaaRecords[0].ipv6Address
 output gsaconnectorFQDN string = gsaconnectorADNSRecordSet.properties.fqdn
 output gsaconnectorIPv4 string = gsaconnectorADNSRecordSet.properties.aRecords[0].ipv4Address
-output gsaconnectorIPv6 string = gsaconnectorAAAADNSRecordSet.properties.aaaaRecords[0].ipv6Address
 output yadaFQDN string = yadaADNSRecordSet.properties.fqdn
 output yadaIPv4 string = yadaADNSRecordSet.properties.aRecords[0].ipv4Address
 output yadaIPv6 string = yadaAAAADNSRecordSet.properties.aaaaRecords[0].ipv6Address
