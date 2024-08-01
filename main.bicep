@@ -379,7 +379,7 @@ resource apinic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
             id: '${servervnet.id}/subnets/vmsubnet1'
           }
           privateIPAllocationMethod: 'Static'
-          privateIPAddress: 'abcd:de12:3456:1:10'
+          privateIPAddress: 'abcd:de12:3456:1::10'
         }
       }
     ]
@@ -774,9 +774,9 @@ resource privateDNSZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   location: 'global'
   name: 'gsa.local'
 }
-resource yadaDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+resource yadaADNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
-  name: 'yadaconnector'
+  name: 'yada'
   properties: {
     ttl: 3600
     aRecords: [
@@ -784,14 +784,24 @@ resource yadaDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
         ipv4Address: ilb.properties.frontendIPConfigurations[0].properties.privateIPAddress
       }     
      ]
-     aaaaRecords: [
-      {
-        ipv6Address: ilb.properties.frontendIPConfigurations[1].properties.privateIPAddress
-      }     
-     ]
     }
   }
-resource gsaconnectorDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+  resource yadaAAAADNSRecordSet 'Microsoft.Network/privateDnsZones/AAAA@2020-06-01' = {
+    parent: privateDNSZone
+    name: 'yada'
+    properties: {
+      ttl: 3600
+       aaaaRecords: [
+        {
+          ipv6Address: ilb.properties.frontendIPConfigurations[1].properties.privateIPAddress
+        }     
+       ]
+      }
+    }
+
+
+
+resource gsaconnectorADNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'gsaconnector'
   properties: {
@@ -801,6 +811,13 @@ resource gsaconnectorDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-0
         ipv4Address: gsaconnectornic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
      ]
+    }
+}
+resource gsaconnectorAAAADNSRecordSet 'Microsoft.Network/privateDnsZones/AAAA@2020-06-01' = {
+  parent: privateDNSZone
+  name: 'gsaconnector'
+  properties: {
+    ttl: 3600
      aaaaRecords: [
       {
         ipv6Address: gsaconnectornic.properties.ipConfigurations[1].properties.privateIPAddress
@@ -808,7 +825,7 @@ resource gsaconnectorDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-0
      ]
     }
 }
-resource web1DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+resource web1ADNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'web1'
   properties: {
@@ -818,6 +835,13 @@ resource web1DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
         ipv4Address: web1nic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
+  }
+}
+resource web1AAAADNSRecordSet 'Microsoft.Network/privateDnsZones/AAAA@2020-06-01' = {
+  parent: privateDNSZone
+  name: 'web1'
+  properties: {
+    ttl: 3600
     aaaaRecords: [
       {
         ipv6Address: web1nic.properties.ipConfigurations[1].properties.privateIPAddress
@@ -825,7 +849,7 @@ resource web1DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
      ]
   }
 }
-resource web2DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+resource web2ADNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'web2'
   properties: {
@@ -835,6 +859,13 @@ resource web2DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
         ipv4Address: web2nic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
+  }
+}
+resource web2AAAADNSRecordSet 'Microsoft.Network/privateDnsZones/AAAA@2020-06-01' = {
+  parent: privateDNSZone
+  name: 'web2'
+  properties: {
+    ttl: 3600
     aaaaRecords: [
       {
         ipv6Address: web2nic.properties.ipConfigurations[1].properties.privateIPAddress
@@ -842,7 +873,7 @@ resource web2DNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
      ]
   }
 }
-resource apiDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
+resource apiADNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
   parent: privateDNSZone
   name: 'api'
   properties: {
@@ -852,6 +883,13 @@ resource apiDNSRecordSet 'Microsoft.Network/privateDnsZones/A@2020-06-01' = {
         ipv4Address: apinic.properties.ipConfigurations[0].properties.privateIPAddress
       }      
     ]
+  }
+}
+resource apiAAAADNSRecordSet 'Microsoft.Network/privateDnsZones/AAAA@2020-06-01' = {
+  parent: privateDNSZone
+  name: 'api'
+  properties: {
+    ttl: 3600
     aaaaRecords: [
       {
         ipv6Address: apinic.properties.ipConfigurations[1].properties.privateIPAddress
@@ -874,18 +912,18 @@ resource vnetlink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06
 
 
 
-output web1FQDN string = web1DNSRecordSet.properties.fqdn
-output web1IPv4 string = web1DNSRecordSet.properties.aRecords[0].ipv4Address
-output web1IPv6 string = web1DNSRecordSet.properties.aaaaRecords[0].ipv6Address
-output web2FQDN string = web2DNSRecordSet.properties.fqdn
-output web2IPv4 string = web2DNSRecordSet.properties.aRecords[0].ipv4Address
-output web2IPv6 string = web2DNSRecordSet.properties.aaaaRecords[0].ipv6Address
-output apiFQDN string = apiDNSRecordSet.properties.fqdn
-output apiIPv4 string = apiDNSRecordSet.properties.aRecords[0].ipv4Address
-output apiIPv6 string = apiDNSRecordSet.properties.aaaaRecords[0].ipv6Address
-output gsaconnectorFQDN string = gsaconnectorDNSRecordSet.properties.fqdn
-output gsaconnectorIPv4 string = gsaconnectorDNSRecordSet.properties.aRecords[0].ipv4Address
-output gsaconnectorIPv6 string = gsaconnectorDNSRecordSet.properties.aaaaRecords[0].ipv6Address
-output yadaFQDN string = yadaDNSRecordSet.properties.fqdn
-output yadaIPv4 string = yadaDNSRecordSet.properties.aRecords[0].ipv4Address
-output yadaIPv6 string = yadaDNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output web1FQDN string = web1ADNSRecordSet.properties.fqdn
+output web1IPv4 string = web1ADNSRecordSet.properties.aRecords[0].ipv4Address
+output web1IPv6 string = web1AAAADNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output web2FQDN string = web2ADNSRecordSet.properties.fqdn
+output web2IPv4 string = web2ADNSRecordSet.properties.aRecords[0].ipv4Address
+output web2IPv6 string = web2AAAADNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output apiFQDN string = apiADNSRecordSet.properties.fqdn
+output apiIPv4 string = apiADNSRecordSet.properties.aRecords[0].ipv4Address
+output apiIPv6 string = apiAAAADNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output gsaconnectorFQDN string = gsaconnectorADNSRecordSet.properties.fqdn
+output gsaconnectorIPv4 string = gsaconnectorADNSRecordSet.properties.aRecords[0].ipv4Address
+output gsaconnectorIPv6 string = gsaconnectorAAAADNSRecordSet.properties.aaaaRecords[0].ipv6Address
+output yadaFQDN string = yadaADNSRecordSet.properties.fqdn
+output yadaIPv4 string = yadaADNSRecordSet.properties.aRecords[0].ipv4Address
+output yadaIPv6 string = yadaAAAADNSRecordSet.properties.aaaaRecords[0].ipv6Address
