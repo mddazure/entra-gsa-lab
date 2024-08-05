@@ -77,7 +77,9 @@ Access the Windows 11 client you intend to use in this lab, and browse to both t
 The first step in setting up GSA is to install the Entra Private Network Connector agent on the gsaconnector VM. This VM runs Windows Server 2022 and it does not have to be joined to Entra ID. The role of the connector is to establish an outbound connection to the Microsoft Entra Private Access and application proxy services. This connection then serves as a bidrectional connection path between the application proxy and the applications inside a private network, without needing inbound connectivity from the internet into the private network. This communication path is shown in the above diagram as the green dashed lines.
 
 Log on to the VM named gsaconnector via Bastion.
+
 Username: AzureAdmin
+
 Password: GSA-demo2024 
 
 In Server Manager, set IE Enhanced Security Configuration to Off:
