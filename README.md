@@ -7,8 +7,9 @@ GSA is part of the Microsoft Entra ID portfolio and is operated from the [Entra 
 This lab explores both the Private- and Internet Access components of GSA. 
 ### Private access
 A backend application, based on Jose Moreno's [Yet Another Demo App (YADA)](https://github.com/Microsoft/YADA), is deployed on VMs in a VNET and exposed through an Internal Load Balancer.
-We want the application to be available to all users registered in our Entra ID tenant, without the need for a network connection from user's devicesto the VNET. The application is accessible via an internal FQDN that resolves to the internal IP address of the ILB. 
+We want the application to be available to all users registered in our Entra ID tenant, without the need for a network connection from user's devices to the VNET. The application is accessible via an internal FQDN that resolves to the internal IP address of the ILB. 
 
+We also want to provide SSH console access to the application's VMs to only our global secure access administrator user, again without a network connection between the user's device and the VNET.
 ### Internet access
 The lab then continues to explore Entra Internet Access, demonstrating how to control and secure internet access from user devices, again without a connection to the corporate network.
 
@@ -170,7 +171,7 @@ Then navigate to the Enterpise application named SSH, click Users and groups, an
 
 ![images](/images/add_gsaadmin_to_ssh.png)
 
-Log on to the client device as your admin user. Open a command prompt and ssh to a one of the vm's as the *local* administrator:
+Open a command prompt and ssh to a one of the vm's as the *local* administrator (not the gsaadmin Entra ID user):
 adminUsername = `AzureAdmin`
 adminPassword = `GSA-demo2024`
 
