@@ -160,8 +160,6 @@ You should now see the Yada application home page. Scroll down to Your IP addres
 
 ![images](/images/your_ip_address.png)
 
-Note that 
-
 ##### Private SSH administrator access
 Now configure SSH access to the individual VMs specifically for the administrator user only.
 
