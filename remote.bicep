@@ -100,6 +100,11 @@ resource remotensg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
 resource c8k 'Microsoft.Compute/virtualMachines@2021-07-01' = {
   name: 'c8k'
   location: location
+  plan:{
+    name: '17_13_01a-byol'
+    publisher: 'cisco'
+    product: 'cisco-c8000v-byol'
+  }
   properties: {
     hardwareProfile: {
       vmSize: 'Standard_DS2_v2'
