@@ -128,6 +128,11 @@ resource c8k 'Microsoft.Compute/virtualMachines@2021-07-01' = {
       adminUsername: adminUsername
       adminPassword: adminPassword
     }
+    diagnosticsProfile: {
+      bootDiagnostics: {
+        enabled: true
+      }
+    }
     networkProfile: {
       networkInterfaces: [
         {
