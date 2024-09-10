@@ -108,7 +108,10 @@ You can now disconnect from the gsaconnector VM.
 Next is the installation of the [Global Secure Access client](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-install-windows-client). The client machine must run a 64-bit version of Windows 10 or 11 and must be joined to Entra ID. 
 
 :point_right: Ensure all Entra users you will be testing with are local administrators on the Entra-joined test devices. This is not a requirement for Entra GSA to work, but it makes accessing Advanced diagnostincs and Logs in the GSA Client easier.
-In the Entra portal, navigate to Devices - All devices - Device settins and click "Manage Additional local administrators on all Microsoft Entra joined devices". On the next page, click + Add assignments, select all users and Click Assign.
+
+In the Entra portal, navigate to Devices - All devices - Device settings and click "Manage Additional local administrators on all Microsoft Entra joined devices".
+
+On the next page, click + Add assignments, select all users and Click Assign.
 
 ![image](/images/add_local_admins.png)
 
