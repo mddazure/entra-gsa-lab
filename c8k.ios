@@ -1,0 +1,56 @@
+ipv6 unicast-routing
+
+crypto ikev2 proposal proposal-c8kspoke2 
+ encryption aes-cbc-128
+ integrity sha256
+ group 14
+!
+crypto ikev2 policy policy-c8kspoke2 
+ proposal proposal-c8kspoke2
+!
+crypto ikev2 keyring azure-keyring
+ peer <entra-pubIPv4>
+  address <entra-pubIPv4>
+  pre-shared-key gsa123
+!
+crypto ikev2 profile profile-c8kspoke2
+ match address local interface GigabitEthernet1
+ match identity remote address <entra-pubIPv4> 255.255.255.255 
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local azure-keyring
+ lifetime 28800
+ dpd 10 5 on-demand
+!
+crypto ipsec transform-set azure-ipsec-proposal-set esp-gcm 
+ mode tunnel
+!
+crypto ipsec profile ipsec-c8kspoke2
+ set security-association lifetime kilobytes 102400000
+ set transform-set azure-ipsec-proposal-set 
+ set ikev2-profile profile-c8kspoke2
+!
+interface Tunnel101
+ ip address 172.16.0.1 255.255.255.252
+ ip tcp adjust-mss 1350
+ tunnel source GigabitEthernet1
+ tunnel mode ipsec ipv4
+ tunnel destination <entra-pubIPv4>
+ tunnel protection ipsec profile ipsec-c8kspoke2
+! 
+! default route pointing to CSR subnet default gateway, so that tunnel outside traffic and internet go out LAN port
+ip route 0.0.0.0 0.0.0.0 GigabitEthernet1 172.16.1.1
+!
+! route for remote bgp endpoint pointing tunnel
+ip route 192.168.0.4 255.255.255.255 Tunnel101
+!
+router bgp 64000
+ redistribute connected
+ neighbor 192.168.0.4 remote-as 65476
+ neighbor 192.168.0.4 ebgp-multihop 255
+ neighbor 192.168.0.4 soft-reconfiguration inbound
+ neighbor 192.168.0.4 update-source GigabitEthernet1
+
+
+
+

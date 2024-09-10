@@ -65,7 +65,7 @@ resource remotensg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
       name: 'AllowSSHInbound'
       properties: {
         access: 'Allow'
-        description: 'Allow HTTP inbound traffic'
+        description: 'Allow SSH inbound traffic'
         destinationAddressPrefix: '*'
         destinationPortRange: '22'
         direction: 'Inbound'
