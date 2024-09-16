@@ -1,4 +1,4 @@
-# **Global Secure Access lab**
+# ***Global Secure Access lab***
 Microsoft's Security Service Edge (SSE) solution is comprised of Entra Private Access and Entra Internet Access, unified under the name [Global Secure Access](https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access). 
 
 GSA is part of the Microsoft Entra ID portfolio and is operated from the [Entra portal](https://entra.microsoft.com/#home). 
