@@ -3,12 +3,6 @@ Microsoft's Security Service Edge (SSE) solution is comprised of Entra Private A
 
 GSA is part of the Microsoft Entra ID portfolio and is operated from the [Entra portal](https://entra.microsoft.com/#home). 
 
-# Table of Contents
- [Scenario](#scenario)
- [Private access](#private-access)
- [Internet access](#internet-access)
- [Prerequisites](#prerequisites)
-
 # Scenario
 This lab explores both the Private- and Internet Access components of GSA. 
 ## Private access
