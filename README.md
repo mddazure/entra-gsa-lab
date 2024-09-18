@@ -216,5 +216,26 @@ In the diagram below, the user's Security profile contains a Web content filteri
 
 Result is that the user can access Glock, even though this falls in the Weapons category, but cannot access Colt. Any other web destinations are tunneled to the Secure Web Gateway and are allowed to pass.
 
+## Remote Networks
+In addition to end-user devices with the GSA Client installed, GSA also supports remote networks. A remote network is a location, for example a branch office, with client devices that do not have the GSA Client installed but still need secure access to resources in the data center, and secured internet access.
 
-### Remote Networks
+GSA Remote Networks lets a remote network connect to the service by means of an IPSec VPN tunnel between a router or firwall onpremise, and the GSA gateway. All traffic at the remote location is pointed to the local router, and this forwards traffic into the tunnel to GSA. GSA then control access to private resources and internet destinations. It is obviously still possible to let some internet traffic break out locally. This is similar to the Custom Bypass policies in Internet Access, but is controlled locally through configuration on the router.
+
+:point_right: at the time writing in September 2024, Remote Networks only supports the Microsoft traffic profile, with Private and Internet access on the roadmap.
+
+### Lab
+A Remote Network is simulated through a separate VNET. The VNET contains a client VM running WIndows 11, and a Cisco 8000v NVA. An IPSec tunnel connects the NVA to the GSA service. As Private and Internet access are not yet supported from Remote Networks, there is not yet much to demonstrate beyond the actual connection.
+
+![image](/images/remote_network.png)
+
+### Deployment
+
+Accept terms of use of the Cisco 8000v image:
+
+    az vm image terms accept -p cisco -f cisco-c8000v-byol --plan 17_13_01a-byol -o none
+
+Deploy template:
+
+    az deployment group create -g <rgname> --template-file remote.bicep --parameters location=<region>
+
+When deployment completes, log on the 
