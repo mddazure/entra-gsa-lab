@@ -12,7 +12,8 @@ We want the application to be available to all users registered in our Entra ID 
 We also want to provide SSH console access to the application's VMs to only our global secure access administrator user, again without a network connection between the user's device and the VNET.
 ## Internet access
 The lab then continues to explore Entra Internet Access, demonstrating how to control and secure internet access from user devices, again without a connection to the corporate network.
-
+## Remote network
+Finally a Remote network, simulated through an additional VNET, is deployed and connected to the GSA service through VPN. This demonstrates how clients within a private remote network can leverage Entra GSA without the need to have the GSA Client installed.
 # Prerequisites
 Most important prequisite is to have a user with *both* [Global Secure Access Administrator](https://learn.microsoft.com/en-us/entra/global-secure-access/quickstart-access-admin-center) *and* [Application Administrator](https://learn.microsoft.com/en-us/entra/global-secure-access/troubleshoot-connectors#verify-admin-is-used-to-install-the-connector) access, or Global Administrator access, to an Entra ID P1 or P2 tenant. GSA is not available under Entra ID Free tenants.
 
@@ -105,15 +106,12 @@ When the Connector has successfully installed, it will connect to Entra and be l
 You can now disconnect from the gsaconnector VM.
 
 ## Install Client 
-Next is the installation of the [Global Secure Access client](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-install-windows-client). The client machine must run a 64-bit version of Windows 10 or 11 and must be joined to Entra ID. 
+Next is the installation of the [Global Secure Access client](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-install-windows-client) on a client machine. The client machine must run a 64-bit version of Windows 10 or 11 and must be joined to Entra ID. 
 
-:point_right: Ensure all Entra users you will be testing with are local administrators on the Entra-joined test devices. This is not a requirement for Entra GSA to work, but it makes accessing Advanced diagnostincs and Logs in the GSA Client easier.
+:point_right: A convenient method to obtain a self-contained client machine for testing is to install a nested VM running Windows 11 on your primary device. Instructions are [here](/hyper-v.md). 
 
-In the Entra portal, navigate to Devices - All devices - Device settings and click "Manage Additional local administrators on all Microsoft Entra joined devices".
-
-On the next page, click + Add assignments, select all users and click Assign.
-
-![image](/images/add_local_admins.png)
+:point_right: Switching between users on the same client machine does not seem to work smoothly. It appears that the GSA client retains the previous user's profile for a while, before converging on the current user's profile.
+When experimenting with multiple users with different profile settings, it is more convenient to use multiple client machines (i.e. multiple VMs) side-by-side.
 
 :point_right: When using a nested VM on a corporate laptop, be aware that Virtual machines where both the host and guest Operating Systems have the Global Secure Access client installed [are not supported](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-install-windows-client#known-limitations).
 
@@ -131,7 +129,7 @@ Select Client download.
 
 Run GlobalSecureAccessClient.exe and accept the terms.
 
-Sign is as an Entra ID user when asked.
+Sign in with the same Entra ID user that you are logged into the VM as, when asked.
 
 The Client will connect to Entra and the icon in the taskbar will show a green tick mark. 
 Left clicking the icon shows clients status, right clicking the icon shows menu options.
@@ -143,6 +141,18 @@ Left clicking the icon shows clients status, right clicking the icon shows menu 
 ## Configure GSA
 Entra [Private Access](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-private-access) allows remote users to access internal, i.e. non-internet exposed, applications. Private Access allows administrators to specify applications by internally resolvable FQDNs pr private IP addresses. Remote users then don't need a VPN to access these resources if they have the Global Secure Access Client installed. The client quietly and seamlessly connects them to the resources they need.
 ### Private Access
+Private Access is controlled by the Private access profile under Traffic forwarding. 
+
+When Enabled (1), the profile applies to all or selected Users and/or groups (2). Private access policies (3) then determine the specific private resources (applications) that the policy controls access to. 
+
+![images](/images/private_access_hierarchy.png)
+
+![images](/images/private_access_profile.png)
+
+Private resources can be defined as either Quick Access, which is a collection of private resources that applies to all or a subset of Users and groups that the Private access policy applies to, or as individual Applications, which allows for narrower control of access to a subset of Users and groups that the Private access policy applies to.
+
+![images](/images/private_access_traffic_policies.png)
+
 #### Web access to Yada
 We will first configure a Private Access policy to allow all users in Entra ID tenant to access to web applicatiion. This is achieved easiest through [Quick Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-quick-access), which configures application access that applies to all users in the Entra tenant.
 
@@ -156,7 +166,7 @@ In the panel appearing on the right, select Destination type as Fully qualified 
 
 ![image](images/quick_access.png)
 
-:question: Quick Access applications should be accessible to all usersin the tenant without further configuration. However, testing at the time of this writing in August 2024 shows that users must still be specifically added to the Enterprise application created by  the Quick Access configuration.
+:question: Quick Access applications should be accessible to all users in the tenant without further configuration. However, testing at the time of this writing in August 2024 shows that users must still be specifically added to the Enterprise application created by  the Quick Access configuration.
 
 Navigate to the Enterprise appliction, click Users and groups and add individual users.
 
@@ -190,6 +200,16 @@ Now log on to the client device as one of your regular users and attempt to conn
 ![images](/images/local_admin_access_denied.png)
 
 ### Internet Access
-Entra [Internet Access](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-internet-access)
+Entra [Internet Access](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-internet-access) is an identity-centric Secure Web Gateway solution. It filters access to web content based on policies, and these can be applied to all users in an organization, groups or even individual user identities.
+
+Internet Access is controlled by the Internet access profile under Traffic forwarding. 
+
+When Enabled (1), the profile applies to all or selected Users and/or groups (2).  Internet access policies (3) then determine the which internet traffic from those users is sent to the Secure Web Gateway for evaluation, and which traffic is allowed to break out to internet directly from the user's machine.
+
+Linked Conditional Access policies (4) then determine against which Security profiles (6), which in turn are made up of Web content filtering policies (7), the specific user's internet traffic is evaluated.
+
+specific private resources (applications) that the policy controls access to. 
+
+The GSA Client directs web traffic 
 
 ### Remote Networks
