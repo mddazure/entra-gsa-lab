@@ -206,17 +206,15 @@ Internet Access is controlled by the Internet access profile under Traffic forwa
 
 When Enabled (1), the profile applies to all or selected Users and/or groups (2).  Internet access policies (3) then determine the which internet traffic from those users is sent to the Secure Web Gateway for evaluation, and which traffic is allowed to break out to internet directly from the user's machine.
 
+Linked Conditional Access policies (4) then determine against which Security profiles (5), which in turn are made up of Web content filtering policies (6), the specific user's internet traffic is evaluated.
+
+![image](/images/internet_access_hierarchy.png)
+
 In the diagram below, the user's Security profile contains a Web content filtering policy blocking access to the Weapons category and allowing everything else. The Custom Bypass Internet access policy allows traffic to www.glock.com to break out directly from the client.
 
 ![image](/images/internet_flow.png)
 
 Result is that the user can access Glock, even though this falls in the Weapons category, but cannot access Colt. Any other web destinations are tunneled to the Secure Web Gateway and are allowed to pass.
-
-Linked Conditional Access policies (4) then determine against which Security profiles (5), which in turn are made up of Web content filtering policies (6), the specific user's internet traffic is evaluated.
-
-![image](/images/internet_access_hierarchy.png)
-
-
 
 
 ### Remote Networks
