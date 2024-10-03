@@ -36,6 +36,9 @@ resource remotevnet 'Microsoft.Network/virtualNetworks@2020-11-01' = {
           networkSecurityGroup: {
           id: remotensg.id 
           }
+          routeTable: {
+          id: remoteudr.id
+          }
         }
       }
       {
