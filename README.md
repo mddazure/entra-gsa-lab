@@ -230,12 +230,71 @@ A Remote Network is simulated through a separate VNET. The VNET contains a clien
 
 ### Deployment
 
-Accept terms of use of the Cisco 8000v image:
+#### Accept terms of use of the Cisco 8000v image:
 
     az vm image terms accept -p cisco -f cisco-c8000v-byol --plan 17_13_01a-byol -o none
 
-Deploy template:
+#### Deploy template:
 
     az deployment group create -g <rgname> --template-file remote.bicep --parameters location=<region>
 
-When deployment completes, log on the 
+When deployment completes, get the public IP address of the Cisco 8000v NVA `c8kpublicip` from the portal or through CLI:
+
+    az network 
+
+#### Create a GSA Remote Network:
+
+    In the Entra portal in the Global Secure Access section, under Connect, click Remote networks, then click Create remote network at the top of the page.
+
+![image](/images/create_remote_netw.png)
+
+    Give the new Remote network a name. Decide on a region, this is where the Gateway that this network will connect to is located.
+
+![image](/images/create_remote_netw_basics.png)
+
+Continue to the Connectivity tab at the top of the screen. 
+
+Click Add a link, and enter configuration as shown:
+
+![image](/images/create_remote_netw_addlink_general.png)
+
+:point_right: fill in the Details screen exactly as shown, as these parameters must match the IKEv2/IPSec configuration on the Cisco 8000v NVA.
+
+![image](/images/create_remote_netw_addlink_details.png)
+
+![image](/images/create_remote_netw_addlink_security.png)
+
+After the remote network is created, click on View configuration under Connectivity details.
+
+![image](/images/remote_network_configuration.png)
+
+In the json that opens, look up and copy the "endpoint" address under "localConfigurations".
+
+![image](/images/remote_network_endpoint.png)
+
+#### Configure Cisco 8000v NVA
+
+Copy the file [c8k.ios](https://github.com/mddazure/entra-gsa-lab/blob/main/c8k.ios) from this repository to a text editor.
+
+Find and replace `entra-pubIPv4` by the endpoint address copied from the Entra Remote network configuration previously.
+
+Log on to the Cisco 8000v NVA named c8k through Serial Console.
+
+Username: `AzureAdmin`
+
+Password: `GSA-demo2024`
+
+Type `en` and then `conf t`.
+
+Copy and paste in the modified contents of the c8k.ios file.
+
+Type `end` and then `sh ip int brief`.
+
+The interface Tunnel101 should show Up under both Status and Protocol.
+
+![image](/images/c8k_sh_ip_int.png)
+
+Type `copy run start` and confirm default prompts to store the configuration.
+
+### Testing
+GSA Remote networks only supports the Microsoft 365 Traffic profile at the time of this writing in September 2024. This means that any traffic for Microsoft 365 services is forwarded 

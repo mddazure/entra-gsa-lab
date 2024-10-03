@@ -1,5 +1,8 @@
 param location string = 'swedencentral'
 
+var clientimagePublisher = 'microsoftwindowsdesktop'
+var clientimageOffer = 'windows-11'
+var clientimageSku = 'win11-22h2-pro'
 
 var imagePublisher = 'MicrosoftWindowsServer'
 var imageOffer = 'WindowsServer'
@@ -56,6 +59,25 @@ resource remotevnet 'Microsoft.Network/virtualNetworks@2020-11-01' = {
     ]
   }
 }
+resource remoteudr 'Microsoft.Network/routeTables@2021-02-01' = {
+  name: 'remoteudr'
+  location: location
+  properties: {
+    disableBgpRoutePropagation: false
+    routes: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopType: 'VirtualAppliance'
+          nextHopIpAddress: '172.16.1.4'
+          }
+        }
+    ]
+  }
+}
+
+
 resource remotensg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
   name: 'remotensg'
   location: location
@@ -198,9 +220,9 @@ resource clientvm 'Microsoft.Compute/virtualMachines@2021-07-01' = {
     }
     storageProfile: {
       imageReference: {
-        publisher: imagePublisher
-        offer: imageOffer
-        sku: imageSku
+        publisher: clientimagePublisher
+        offer: clientimageOffer
+        sku: clientimageSku
         version: 'latest'
       }
       osDisk: {
