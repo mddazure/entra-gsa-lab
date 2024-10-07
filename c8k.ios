@@ -38,9 +38,13 @@ interface Tunnel101
  tunnel destination <entra-pubIPv4>
  tunnel protection ipsec profile ipsec-c8kspoke2
 ! 
-! default route pointing to CSR subnet default gateway, so that tunnel outside traffic and internet go out LAN port
-ip route 0.0.0.0 0.0.0.0 GigabitEthernet1 172.16.1.1
+! default route pointing to tunnel, so that all traffic is sent to GSA gateway
+ip route 0.0.0.0 0.0.0.0 Tunnel101
 !
+! route to GSA gateway public ip address pointing to LAN 
+ip route <entra-pubIPv4> 255.255.255.255 172.16.1.1
+
+
 ! route for remote bgp endpoint pointing tunnel
 ip route 192.168.0.4 255.255.255.255 Tunnel101
 !

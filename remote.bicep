@@ -42,11 +42,20 @@ resource remotevnet 'Microsoft.Network/virtualNetworks@2020-11-01' = {
         }
       }
       {
-        name: 'c8ksubnet'
+        name: 'c8k-int-subnet'
         properties: {
           addressPrefixes: [
           '172.16.1.0/24'
           'cdef:ab12:3456:1::/64'
+          ]
+        }
+      }
+      {
+        name: 'c8k-ext-subnet'
+        properties: {
+          addressPrefixes: [
+          '172.16.2.0/24'
+          'cdef:ab12:3456:2::/64'
           ]
           networkSecurityGroup: {
           id: remotensg.id 
@@ -161,30 +170,31 @@ resource c8k 'Microsoft.Compute/virtualMachines@2021-07-01' = {
     networkProfile: {
       networkInterfaces: [
         {
-          id: c8knic.id
+          id: c8knicint.id
+        }
+        {
+          id: c8knicext.id
         }
       ]
     }
   }
 }
-resource c8knic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
-  name: 'c8knic'
+resource c8knicint 'Microsoft.Network/networkInterfaces@2021-02-01' = {
+  name: 'c8knicint'
   location: location
   properties: {
+    enableIPForwarding: true
     ipConfigurations: [
       {
         name: 'ipconfig1'
         properties: {
           primary: true
           subnet: {
-            id: '${remotevnet.id}/subnets/c8ksubnet'
+            id: '${remotevnet.id}/subnets/c8k-int-subnet'
           }
           privateIPAllocationMethod: 'Static'
           privateIPAddressVersion: 'IPv4'
-          privateIPAddress: '172.16.1.4'
-          publicIPAddress: {
-            id: c8kpublicip.id
-          }
+          privateIPAddress: '172.16.1.4'          
         }
       }
       {
@@ -197,6 +207,43 @@ resource c8knic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
           privateIPAllocationMethod: 'Static'
           privateIPAddressVersion: 'IPv6'
           privateIPAddress: 'cdef:ab12:3456:1::4'
+        }  
+      }
+    ]
+  }
+}
+resource c8knicext 'Microsoft.Network/networkInterfaces@2021-02-01' = {
+  name: 'c8knicext'
+  location: location
+  properties: {
+    enableIPForwarding: true
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          primary: true
+          subnet: {
+            id: '${remotevnet.id}/subnets/c8k-ext-subnet'
+          }
+          privateIPAllocationMethod: 'Static'
+          privateIPAddressVersion: 'IPv4'
+          privateIPAddress: '172.16.2.4'
+          publicIPAddress: {
+            id: c8kpublicip.id
+          }
+          
+        }
+      }
+      {
+        name: 'ipconfig2'
+        properties: {
+          primary: false
+          subnet: {
+            id: '${remotevnet.id}/subnets/c8k-ext-subnet'
+          }
+          privateIPAllocationMethod: 'Static'
+          privateIPAddressVersion: 'IPv6'
+          privateIPAddress: 'cdef:ab12:3456:2::4'
         }  
       }
     ]
