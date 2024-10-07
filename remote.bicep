@@ -201,7 +201,7 @@ resource c8knicint 'Microsoft.Network/networkInterfaces@2021-02-01' = {
         properties: {
           primary: false
           subnet: {
-            id: '${remotevnet.id}/subnets/c8ksubnet'
+            id: '${remotevnet.id}/subnets/c8k-int-subnet'
           }
           privateIPAllocationMethod: 'Static'
           privateIPAddressVersion: 'IPv6'
