@@ -176,6 +176,9 @@ resource c8k 'Microsoft.Compute/virtualMachines@2021-07-01' = {
         }
         {
           id: c8knicext.id
+          properties: {
+            primary: false
+          }
         }
       ]
     }
