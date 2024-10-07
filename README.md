@@ -240,15 +240,15 @@ A Remote Network is simulated through a separate VNET. The VNET contains a clien
 
 When deployment completes, get the public IP address of the Cisco 8000v NVA `c8kpublicip` from the portal or through CLI:
 
-    az network 
+    az network public-ip show -g <rgname> -n c8kpublicip --query ipAddress
 
 #### Create a GSA Remote Network:
 
-    In the Entra portal in the Global Secure Access section, under Connect, click Remote networks, then click Create remote network at the top of the page.
+In the Entra portal in the Global Secure Access section, under Connect, click Remote networks, then click Create remote network at the top of the page.
 
 ![image](/images/create_remote_netw.png)
 
-    Give the new Remote network a name. Decide on a region, this is where the Gateway that this network will connect to is located.
+Give the new Remote network a name. Decide on a region, this is where the Gateway that this network will connect to is located.
 
 ![image](/images/create_remote_netw_basics.png)
 
