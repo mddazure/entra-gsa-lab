@@ -170,6 +170,9 @@ resource c8k 'Microsoft.Compute/virtualMachines@2021-07-01' = {
       networkInterfaces: [
         {
           id: c8knicint.id
+          properties: {
+            primary: true
+          }
         }
         {
           id: c8knicext.id
@@ -182,7 +185,7 @@ resource c8knicint 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   name: 'c8knicint'
   location: location
   properties: {
-    enableIPForwarding: true
+    enableIPForwarding: true    
     ipConfigurations: [
       {
         name: 'ipconfig1'
