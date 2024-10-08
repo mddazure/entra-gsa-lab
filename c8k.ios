@@ -14,7 +14,7 @@ crypto ikev2 keyring azure-keyring
   pre-shared-key gsa123
 !
 crypto ikev2 profile profile-c8kspoke2
- match address local interface GigabitEthernet1
+ match address local interface GigabitEthernet2
  match identity remote address <entra-pubIPv4> 255.255.255.255 
  authentication remote pre-share
  authentication local pre-share
@@ -30,21 +30,28 @@ crypto ipsec profile ipsec-c8kspoke2
  set transform-set azure-ipsec-proposal-set 
  set ikev2-profile profile-c8kspoke2
 !
+interface GigabitEthernet2
+ ip address dhcp
+ no shutdown
+
 interface Tunnel101
  ip address 172.16.0.1 255.255.255.252
  ip tcp adjust-mss 1350
- tunnel source GigabitEthernet1
+ tunnel source GigabitEthernet2
  tunnel mode ipsec ipv4
  tunnel destination <entra-pubIPv4>
  tunnel protection ipsec profile ipsec-c8kspoke2
 ! 
 ! default route pointing to tunnel, so that all traffic is sent to GSA gateway
+no ip route 0.0.0.0 0.0.0.0 172.16.1.1
 ip route 0.0.0.0 0.0.0.0 Tunnel101
 !
-! route to GSA gateway public ip address pointing to LAN 
-ip route <entra-pubIPv4> 255.255.255.255 172.16.1.1
-
-
+! route to local VNET pointing to internal interface
+ip route 172.16.0.0 255.255.0.0 172.16.1.1
+!
+! route to GSA gateway public ip address pointing to external interface
+ip route <entra-pubIPv4> 255.255.255.255 172.16.2.1
+!
 ! route for remote bgp endpoint pointing tunnel
 ip route 192.168.0.4 255.255.255.255 Tunnel101
 !

@@ -216,15 +216,46 @@ In the diagram below, the user's Security profile contains a Web content filteri
 
 Result is that the user can access Glock, even though this falls in the Weapons category, but cannot access Colt. Any other web destinations are tunneled to the Secure Web Gateway and are allowed to pass.
 
-## Remote Networks
-In addition to end-user devices with the GSA Client installed, GSA also supports remote networks. A remote network is a location, for example a branch office, with client devices that do not have the GSA Client installed but still need secure access to resources in the data center, and secured internet access.
+### Microsoft 
+Entra [Microsoft Internet Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-microsoft-profile) specifically acquires traffic to Microsoft services. This means that traffic for Microsoft 365 services is forwarded to the GSA gateway and from there is routed over the Microsoft network to the region hosting the user's tenant.
 
-GSA Remote Networks lets a remote network connect to the service by means of an IPSec VPN tunnel between a router or firwall onpremise, and the GSA gateway. All traffic at the remote location is pointed to the local router, and this forwards traffic into the tunnel to GSA. GSA then control access to private resources and internet destinations. It is obviously still possible to let some internet traffic break out locally. This is similar to the Custom Bypass policies in Internet Access, but is controlled locally through configuration on the router.
+The Microsoft traffic profile controls the following policy groups: 
+
+- Exchange Online
+- SharePoint Online and Microsoft OneDrive.
+- Microsoft 365 Common and Office Online (only Microsoft Entra ID and Microsoft Graph)
+
+The GSA Micrsoft traffic profile makes it easier for companies to enhance their security posture through [Entra ID Tenant restrictions](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/tenant-restrictions). Tenant restrictions allow companies to control which Entra tenants can be accessed from their devices and networks, helping prevent data exfiltration from corporate devices to alien tenants. It works through including a list of permitted tenants in a header in authentication request to Entra ID. When Entra ID sees the `Restrict-Access-To-Tenants: <permitted tenant list>` in a request, it will only issue tokens for the permitted tenants listed.
+
+In a tradtional on-premise network, client internet access is through a forward proxy. The proxy would then  insert the `Restrict-Access-To-Tenants` header in authentication requests from client devices within the network.
+
+With GSA [Universal tenant restrictions](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-universal-tenant-restrictions), GSA gateway takes on the task of inserting headers in authentication requests both from devices running the GSA client and devices in Remote networks.
+
+Tagging for Universal tenant restrictions (i.e. insertion of the `Restrict-Access-To-Tenants` header) is enabled under Global Secure Access - Settings - Session Management.
+
+![image](/images/univ_tenant_restr_enable.png)
+
+The Universal tenant restrictions policy, which controls the list of allowed tenants, is set under Identity - External Identities - Cross-tenant access settings. Click + Add organization to add alien tenants that users are allowed to access from devices and remote networks.
+
+Click the link under Tenant restrictions (this initially reads Inherited from default), to configure whether all are only specific users and applications can access the alien tenant.
+
+![image](/images/univ_tenant_restr_users.png)
+
+:point_right: Users need to be specified with their object GUID here.
+
+To test, log on to the alien tenant with a user from your tenant that has been given access, and one that has not. The user that does not have access with see this message:
+
+![image](/images/univ_tenant_restr_blocked.png)
+
+## Remote networks
+In addition to end-user devices with the GSA Client installed, GSA also supports remote networks. A remote network is a location, for example a branch office, with client devices that do not have the GSA Client installed but still need secure access to resources in the data center, on the internet and to Microsoft 365.
+
+GSA Remote Networks lets a remote network connect to the service by means of an IPSec VPN tunnel between a router or firwall onpremise, and the GSA gateway. All traffic at the remote location is pointed to the local router, and this forwards traffic into the tunnel to the GSA gateway. GSA then controls access to private resources, internet and Micrsosft 365. It is obviously still possible to let some internet traffic break out locally. This is similar to the Custom Bypass policies in GSA Internet Access for clients, but is controlled locally through configuration on the router.
 
 :point_right: at the time writing in September 2024, Remote Networks only supports the Microsoft traffic profile, with Private and Internet access on the roadmap.
 
 ### Lab
-A Remote Network is simulated through a separate VNET. The VNET contains a client VM running WIndows 11, and a Cisco 8000v NVA. An IPSec tunnel connects the NVA to the GSA service. As Private and Internet access are not yet supported from Remote Networks, there is not yet much to demonstrate beyond the actual connection.
+A Remote Network is simulated through a separate VNET. The VNET contains a client VM running Windows 11, and a Cisco 8000v NVA. An IPSec tunnel connects the NVA to the GSA service's gateway. 
 
 ![image](/images/remote_network.png)
 
@@ -258,7 +289,7 @@ Click Add a link, and enter configuration as shown:
 
 ![image](/images/create_remote_netw_addlink_general.png)
 
-:point_right: fill in the Details screen exactly as shown, as these parameters must match the IKEv2/IPSec configuration on the Cisco 8000v NVA.
+:point_right: Fill in the Details screen exactly as shown, as these parameters must match the IKEv2/IPSec configuration on the Cisco 8000v NVA.
 
 ![image](/images/create_remote_netw_addlink_details.png)
 
@@ -286,6 +317,16 @@ Password: `GSA-demo2024`
 
 Type `en` and then `conf t`.
 
+Enter these commands:
+
+    license boot level network-advantage addon dna-advantage
+    do wr mem
+    do reload
+
+The NVA will now reboot. When rebooting is complete log on again through Serial Console.
+
+Type `en` and then `conf t`.
+
 Copy and paste in the modified contents of the c8k.ios file.
 
 Type `end` and then `sh ip int brief`.
@@ -296,5 +337,10 @@ The interface Tunnel101 should show Up under both Status and Protocol.
 
 Type `copy run start` and confirm default prompts to store the configuration.
 
-### Testing
-GSA Remote networks only supports the Microsoft 365 Traffic profile at the time of this writing in September 2024. This means that any traffic for Microsoft 365 services is forwarded 
+### Verification
+GSA Remote networks only supports the Microsoft Traffic profile at the time of this writing in October 2024. 
+
+![image](/images/remote_netw_traffic_profile.png)
+
+
+
