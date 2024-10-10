@@ -304,8 +304,7 @@ resource web2runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-0
   location: location
   properties: {
     source: {
-      script: '''docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}
-      systemctl enable --now docker.service'''
+      script: 'docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}'
     }
   }
 }  
@@ -424,7 +423,6 @@ resource apiruncommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01
     }
   }
 }
-
 resource apiruncommand2 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
   parent: yadaapi
   name: 'apiruncommand2'
