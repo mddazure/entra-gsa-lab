@@ -153,7 +153,7 @@ Private resources can be defined as either Quick Access, which is a collection o
 
 ![images](/images/private_access_traffic_policies.png)
 
-#### Web access to Yada
+#### Private Web access to Yada
 We will first configure a Private Access policy to allow all users in Entra ID tenant to access to web applicatiion. This is achieved easiest through [Quick Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-quick-access), which configures application access that applies to all users in the Entra tenant.
 
 The web application is behind an Internal Load Balancer, and the ILB front-end address has A (IPv4) and AAAA (IPv6) records named `yada` in the Private DNS Zone `gsa.local`.
@@ -375,7 +375,9 @@ GSA Remote networks does not yet support the Internet Traffic profile. Outbound 
 
 Internet traffic from clientvm is routed to c8k, which has a default route pointing to the tunnel to the GSA gateway.
 
+*Credits*
 
+This article is based in part on [Azure Networking GBB Technical Readiness Session # 37](https://microsoft.sharepoint.com/:p:/t/AzureNetworkingTechnicalChamps/EeY_sG-n1ktAvw47MEoFxMcBFxwHGmQXEGtN1WtG5x7hXQ?e=INbbzh) on Global Secure Access (link accessible to Microsoft staff only), by [Adam Stuart](https://github.com/adstuart) and [Jose Moreno](https://blog.cloudtrooper.net/).
 
 
 
