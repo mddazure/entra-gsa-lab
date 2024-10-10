@@ -195,11 +195,24 @@ resource web1runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-0
   location: location
   properties: {
     source: {
-      script: '''docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}
-      systemctl enable --now docker.service'''
+      script: 'docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}'
     }
   }
 }
+
+resource web1runcommand2 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
+  parent: web1
+  name: 'web1runcommand2'
+  dependsOn: [web1runcommand]
+  location: location
+  properties: {
+    source: {
+      script: 'systemctl enable --now docker.service'
+    }
+  }
+}
+
+
 
 resource web2 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   name: 'web2'
@@ -296,6 +309,18 @@ resource web2runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-0
     }
   }
 }  
+resource web2runcommand2 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
+  parent: web2
+  name: 'web2runcommand2'
+  dependsOn: [web2runcommand]
+  location: location
+  properties: {
+    source: {
+      script: 'systemctl enable --now docker.service'
+    }
+  }
+}
+
 resource yadaapi 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   name: 'yadaapi'
   location: location
@@ -400,7 +425,17 @@ resource apiruncommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01
   }
 }
 
-
+resource apiruncommand2 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
+  parent: yadaapi
+  name: 'apiruncommand2'
+  dependsOn: [apiruncommand]
+  location: location
+  properties: {
+    source: {
+      script: 'systemctl enable --now docker.service'
+    }
+  }
+}
 
 resource gsaconnector 'Microsoft.Compute/virtualMachines@2024-03-01' = {
   name: 'gsaconnector'
