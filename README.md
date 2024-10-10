@@ -243,7 +243,7 @@ Click the link under Tenant restrictions (this initially reads Inherited from de
 
 :point_right: Users need to be specified with their object GUID here.
 
-To test, log on to the alien tenant with a user from your tenant that has been given access, and one that has not. The user that does not have access with see this message:
+To test, log on to the alien tenant with a user from the alient tenant that has been given access, and one that has not. The user that does not have access to the alien tenant will see this message:
 
 ![image](/images/univ_tenant_restr_blocked.png)
 
@@ -338,9 +338,44 @@ The interface Tunnel101 should show Up under both Status and Protocol.
 Type `copy run start` and confirm default prompts to store the configuration.
 
 ### Verification
+The simulated remote network, remotevnet, contains a Windows 11 VM named clientvm. It is not Entra-joined and does not have the GSA client installed. 
+
+A UDR attached to its subnet contains a default route forcing all outbound traffic to the c8k NVA.
+
+Log on to clientvm through Bastion.
+
+Username: `AzureAdmin`
+
+Password: `GSA-demo2024`
+
+#### Microsoft Traffic
+
 GSA Remote networks only supports the Microsoft Traffic profile at the time of this writing in October 2024. 
 
 ![image](/images/remote_netw_traffic_profile.png)
+
+On clientvm, browse to www.office.com.
+
+Log on with a user from an alien tenant, that has been given permission to access the alient tenant in the Microsoft Traffic profile, as described [above](#microsoft). This user will be able to access all Microsoft 365 services under their tenant.
+
+Log off and the log on with a user from the alien tenant that does not have permission to access the alient tenant.
+
+This user will this message:
+
+![image](/images/univ_tenant_restr_blocked.png)
+
+The GSA gateway advertises the [Microsoft 365 address ranges](https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges?view=o365-worldwide) via BGP to the NVA. 
+
+Log on to c8k via Serial console, type `en` and `sh ip route`:
+
+![image](/images/office_routes.png)
+
+#### Internet access
+GSA Remote networks does not yet support the Internet Traffic profile. Outbound internet traffic sent to the gateway from the NVA breaks out at the gateway unfiltered.
+
+Internet traffic from clientvm is routed to c8k, which has a default route pointing to the tunnel to the GSA gateway.
+
+
 
 
 

@@ -187,23 +187,7 @@ resource web1nic 'Microsoft.Network/networkInterfaces@2021-02-01' = {
     ]
   }
 }
-/*resource web1runcommand 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' = {
-  parent: web1
-  name: 'web1runcommand'
-  location: location
-  properties: {
-    publisher: 'Microsoft.Compute'
-    type: 'CustomScriptExtension'
-    typeHandlerVersion: '1.10'
-    autoUpgradeMinorVersion: true
-    settings: {
-      fileUris: [
-        'https://raw.githubusercontent.com/erjosito/azure-quickstart-templates/master/101-vm-simple-linux/azuredeploy.sh'
-      ]
-      commandToExecute: 'bash azuredeploy.sh'
-    }
-  }
-}*/
+
 
 resource web1runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-01' = {
   parent: web1
@@ -211,7 +195,8 @@ resource web1runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-0
   location: location
   properties: {
     source: {
-      script: 'docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}'
+      script: '''docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}
+      systemctl enable --now docker.service'''
     }
   }
 }
@@ -306,7 +291,8 @@ resource web2runcommand 'Microsoft.Compute/virtualMachines/runCommands@2024-03-0
   location: location
   properties: {
     source: {
-      script: 'docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}'
+      script: '''docker run --restart always -d -p 80:80 -e "API_URL=http://${apinic.properties.ipConfigurations[0].properties.privateIPAddress}:8080" --name yadaweb ${web_image}
+      systemctl enable --now docker.service'''
     }
   }
 }  
