@@ -1,10 +1,12 @@
 # ***Global Secure Access lab***
-Microsoft's Security Service Edge (SSE) solution is comprised of Entra Private Access and Entra Internet Access, unified under the name [Global Secure Access](https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access). 
+Microsoft's Security Service Edge (SSE) solution is comprised of Entra Private Access and Entra Internet Access, unified under the name Global Secure Access.
 
-GSA is part of the Microsoft Entra ID portfolio and is operated from the [Entra portal](https://entra.microsoft.com/#home). 
+Global Secure Access (GSA) is part of the Microsoft Entra ID portfolio and is operated from the [Entra portal](https://entra.microsoft.com/#home). 
+
+GSA is a complex, multi-faceted service. It can be daunting to experiment with and describe and demonstrate to customers when starting from scratch. This article  consolidates information from the extensive documentation on [Microsoft Learn](https://learn.microsoft.com/en-us/entra/global-secure-access/) and provides a relatively easy to use platform for experimentation and self-learning. 
 
 # Scenario
-This lab explores both the Private- and Internet Access components of GSA. 
+
 ## Private access
 A backend application, based on Jose Moreno's [Yet Another Demo App (YADA)](https://github.com/Microsoft/YADA), is deployed on VMs in a VNET and exposed through an Internal Load Balancer.
 We want the application to be available to all users registered in our Entra ID tenant, without the need for a network connection from user's devices to the VNET. The application is accessible via an internal FQDN that resolves to the internal IP address of the ILB. 
@@ -19,7 +21,7 @@ Most important prequisite is to have a user with *both* [Global Secure Access Ad
 
 Client device(s) must run 64-bit versions of Windows 11 or Windows 10. The client must be either Microsoft Entra joined or Microsoft Entra hybrid joined to the same tenant that GSA is configured on. As this will usually not be the corporate tenant that your laptop is joined to, the most pragmatic way forward is to [run Windows 11 on a nested virtual machine](https://techcommunity.microsoft.com/t5/itops-talk-blog/how-to-run-a-windows-11-vm-on-hyper-v/ba-p/3713948).
 
-An Azure subscription is required to deploy the backend application. This subscription does not have under the same tenant that GSA is configured on.
+An Azure subscription is required to deploy the backend application. This subscription does not have to be under the same tenant that GSA is configured on.
 
 # Backend application
 The lab backend deployed to Azure comprises following components:
@@ -28,7 +30,7 @@ The lab backend deployed to Azure comprises following components:
 - Two VMs running the YADA web tier, behind both and an Internal and an External Load Balancer.
 - One VM running the YADA application tier.
 - One VM running Windows Server, this will be used to install the GSA Connector.
-- A Pivate DNS Zone linked to the VNET, with A (IpV4) and AAAA (IPv6) records for the ILB frontend and each of the VMs.
+- A Private DNS Zone linked to the VNET, with A (IpV4) and AAAA (IPv6) records for the ILB frontend and each of the VMs.
 
 ![image](/images/entra-gsa-lab.png)
 
@@ -139,7 +141,7 @@ Left clicking the icon shows clients status, right clicking the icon shows menu 
 ![images](/images/client_status.png)
 
 ## Configure GSA
-Entra [Private Access](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-private-access) allows remote users to access internal, i.e. non-internet exposed, applications. Private Access allows administrators to specify applications by internally resolvable FQDNs pr private IP addresses. Remote users then don't need a VPN to access these resources if they have the Global Secure Access Client installed. The client quietly and seamlessly connects them to the resources they need.
+Entra [Private Access](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-private-access) allows remote users to access internal, i.e. non-internet exposed, applications. Private Access allows administrators to specify applications by internally resolvable FQDNs or private IP addresses. Remote users then don't need a VPN to access these resources if they have the Global Secure Access Client installed. The client quietly and seamlessly connects them to the resources they need.
 ### Private Access
 Private Access is controlled by the Private access profile under Traffic forwarding. 
 
@@ -154,7 +156,7 @@ Private resources can be defined as either Quick Access, which is a collection o
 ![images](/images/private_access_traffic_policies.png)
 
 #### Private Web access to Yada
-We will first configure a Private Access policy to allow all users in Entra ID tenant to access to web applicatiion. This is achieved easiest through [Quick Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-quick-access), which configures application access that applies to all users in the Entra tenant.
+We will first configure a Private Access policy to allow all users in the Entra ID tenant to access the web application privately (i.e. not via a public endpoint). This is achieved easiest through [Quick Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-quick-access), which configures application access that applies to all users in the Entra tenant.
 
 The web application is behind an Internal Load Balancer, and the ILB front-end address has A (IPv4) and AAAA (IPv6) records named `yada` in the Private DNS Zone `gsa.local`.
 
@@ -190,8 +192,14 @@ Then navigate to the Enterpise application named SSH, click Users and groups, an
 ![images](/images/add_gsaadmin_to_ssh.png)
 
 Open a command prompt and ssh to a one of the vm's as the *local* administrator (not the gsaadmin Entra ID user):
-adminUsername = `AzureAdmin`
-adminPassword = `GSA-demo2024`
+
+adminUsername:
+
+    AzureAdmin
+
+adminPassword:
+
+    GSA-demo2024
 
 ![images](/images/local_admin_access.png)
 
@@ -217,7 +225,7 @@ In the diagram below, the user's Security profile contains a Web content filteri
 Result is that the user can access Glock, even though this falls in the Weapons category, but cannot access Colt. Any other web destinations are tunneled to the Secure Web Gateway and are allowed to pass.
 
 ### Microsoft 
-Entra [Microsoft Internet Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-microsoft-profile) specifically acquires traffic to Microsoft services. This means that traffic for Microsoft 365 services is forwarded to the GSA gateway and from there is routed over the Microsoft network to the region hosting the user's tenant.
+Entra [Microsoft Internet Access](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-microsoft-profile) specifically acquires traffic to Microsoft services. This means that traffic for Microsoft 365 services is forwarded to the GSA gateway and is routed from there over the Microsoft network to the region hosting the user's tenant.
 
 The Microsoft traffic profile controls the following policy groups: 
 
@@ -227,9 +235,9 @@ The Microsoft traffic profile controls the following policy groups:
 
 The GSA Micrsoft traffic profile makes it easier for companies to enhance their security posture through [Entra ID Tenant restrictions](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/tenant-restrictions). Tenant restrictions allow companies to control which Entra tenants can be accessed from their devices and networks, helping prevent data exfiltration from corporate devices to alien tenants. It works through including a list of permitted tenants in a header in authentication request to Entra ID. When Entra ID sees the `Restrict-Access-To-Tenants: <permitted tenant list>` in a request, it will only issue tokens for the permitted tenants listed.
 
-In a tradtional on-premise network, client internet access is through a forward proxy. The proxy would then  insert the `Restrict-Access-To-Tenants` header in authentication requests from client devices within the network.
+In a traditional on-premise network, client internet access is through a forward proxy. The proxy would then  insert the `Restrict-Access-To-Tenants` header in authentication requests from client devices within the network.
 
-With GSA [Universal tenant restrictions](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-universal-tenant-restrictions), GSA gateway takes on the task of inserting headers in authentication requests both from devices running the GSA client and devices in Remote networks.
+With GSA [Universal tenant restrictions](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-universal-tenant-restrictions), the GSA gateway takes on the task of inserting headers in authentication requests both from devices running the GSA client and devices in Remote networks.
 
 Tagging for Universal tenant restrictions (i.e. insertion of the `Restrict-Access-To-Tenants` header) is enabled under Global Secure Access - Settings - Session Management.
 
@@ -250,9 +258,9 @@ To test, log on to the alien tenant with a user from the alient tenant that has 
 ## Remote networks
 In addition to end-user devices with the GSA Client installed, GSA also supports remote networks. A remote network is a location, for example a branch office, with client devices that do not have the GSA Client installed but still need secure access to resources in the data center, on the internet and to Microsoft 365.
 
-GSA Remote Networks lets a remote network connect to the service by means of an IPSec VPN tunnel between a router or firwall onpremise, and the GSA gateway. All traffic at the remote location is pointed to the local router, and this forwards traffic into the tunnel to the GSA gateway. GSA then controls access to private resources, internet and Micrsosft 365. It is obviously still possible to let some internet traffic break out locally. This is similar to the Custom Bypass policies in GSA Internet Access for clients, but is controlled locally through configuration on the router.
+GSA Remote Networks lets a remote network connect to the service by means of an IPSec VPN tunnel between a router or firewall onpremise, and the GSA gateway. All traffic at the remote location is pointed to the local router, and this forwards traffic into the tunnel to the GSA gateway. GSA then controls access to private resources, internet and Micrsosft 365. It is obviously still possible to let some internet traffic break out locally. This is similar to the Custom Bypass policies in GSA Internet Access for clients, but is controlled locally through configuration on the router.
 
-:point_right: at the time writing in September 2024, Remote Networks only supports the Microsoft traffic profile, with Private and Internet access on the roadmap.
+:point_right: at the time of writing in September 2024, Remote Networks only supports the Microsoft traffic profile, with Private and Internet access on the roadmap.
 
 ### Lab
 A Remote Network is simulated through a separate VNET. The VNET contains a client VM running Windows 11, and a Cisco 8000v NVA. An IPSec tunnel connects the NVA to the GSA service's gateway. 
@@ -293,6 +301,8 @@ Click Add a link, and enter configuration as shown:
 
 ![image](/images/create_remote_netw_addlink_details.png)
 
+Enter pre-shared key `gsa123`. 
+
 ![image](/images/create_remote_netw_addlink_security.png)
 
 After the remote network is created, click on View configuration under Connectivity details.
@@ -311,9 +321,13 @@ Find and replace `entra-pubIPv4` by the endpoint address copied from the Entra R
 
 Log on to the Cisco 8000v NVA named c8k through Serial Console.
 
-Username: `AzureAdmin`
+Username: 
+    
+    AzureAdmin
 
-Password: `GSA-demo2024`
+Password: 
+
+    GSA-demo2024
 
 Type `en` and then `conf t`.
 
@@ -344,9 +358,13 @@ A UDR attached to its subnet contains a default route forcing all outbound traff
 
 Log on to clientvm through Bastion.
 
-Username: `AzureAdmin`
+Username:
 
-Password: `GSA-demo2024`
+    AzureAdmin
+
+Password: 
+
+    GSA-demo2024
 
 #### Microsoft Traffic
 
@@ -356,11 +374,11 @@ GSA Remote networks only supports the Microsoft Traffic profile at the time of t
 
 On clientvm, browse to www.office.com.
 
-Log on with a user from an alien tenant, that has been given permission to access the alient tenant in the Microsoft Traffic profile, as described [above](#microsoft). This user will be able to access all Microsoft 365 services under their tenant.
+Log on with a user from an alien tenant who has been given permission to access the alient tenant in the Microsoft Traffic profile, as described [above](#microsoft). This user will be able to access all Microsoft 365 services under their tenant.
 
-Log off and the log on with a user from the alien tenant that does not have permission to access the alient tenant.
+Log off and then log on with a user from the alien tenant that does not have permission to access the alient tenant.
 
-This user will this message:
+This user will see this message:
 
 ![image](/images/univ_tenant_restr_blocked.png)
 
@@ -371,9 +389,9 @@ Log on to c8k via Serial console, type `en` and `sh ip route`:
 ![image](/images/office_routes.png)
 
 #### Internet access
-GSA Remote networks does not yet support the Internet Traffic profile. Outbound internet traffic sent to the gateway from the NVA breaks out at the gateway unfiltered.
-
 Internet traffic from clientvm is routed to c8k, which has a default route pointing to the tunnel to the GSA gateway.
+
+GSA Remote networks does not yet support the Internet Traffic profile. Outbound internet traffic sent to the GSA gateway from the NVA breaks out at the gateway unfiltered.
 
 *Credits*
 
