@@ -27,6 +27,10 @@ This should let the VM boot from the disk image.
   
 The Windows 11 installation process will start, select Windows 11 Enterprise as the version to install.
 
+If Windows does not install and a message is displayed that this VM does not meet the installation requirements, go to Settings for this VM in Hyper-V Manager. Click Security and ensure that both Enable Secure Boot and Enable Trusted Platform Module are checked.
+
+![image](/images/hyper-v/security_enabled.png)
+
 Follow along and respond to the dialogs as you need.
 
 When the installation is complete, log in with a user id from your Entra tenant: {username}@{tenantname}.onmicrosoft.com.
