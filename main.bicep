@@ -84,22 +84,6 @@ resource servernsg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
         sourcePortRange: '*'
         }
       }
-      {
-        name: 'AllowRDPInbound'
-        properties: {
-          access: 'Allow'
-          description: 'Allow RDP inbound traffic'
-          destinationAddressPrefix: '*'
-          destinationPortRange: '3389'
-          direction: 'Inbound'
-          priority: 150
-          protocol: 'Tcp'
-          sourceAddressPrefixes: [
-            '217.121.229.32'
-          ] 
-          sourcePortRange: '*'
-          }
-        }
     ]
   }
 }
